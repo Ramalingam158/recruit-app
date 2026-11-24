@@ -2,7 +2,6 @@
 FROM maven AS build
 WORKDIR /app
 
-# Cache Maven dependencies before copying source code
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 

@@ -89,10 +89,14 @@ databaseChangeLog:
       changes:
         - createIndex:
             tableName: candidates
-            indexName: idx_candidates_city_exp
+            indexName: idx_candidates_city
             columns:
               - column:
                   name: city
+        - createIndex:
+            tableName: candidates
+            indexName: idx_candidates_exp
+            columns:
               - column:
                   name: experience_years
         - createIndex:

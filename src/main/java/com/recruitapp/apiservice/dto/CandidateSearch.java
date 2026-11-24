@@ -1,7 +1,9 @@
 package com.recruitapp.apiservice.dto;
 
+import jakarta.validation.constraints.Size;
+
 public record CandidateSearch(
-        String name,
-        String mail,
-        String city
+        @Size(max = 100) String name,
+        @Size(max = 100) String mail,
+        @Size(max = 100) String city
 ) {}
