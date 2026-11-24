@@ -47,7 +47,7 @@ public class CandidateSpecification {
                 return null;
             }
 
-            return cb.like(root.get("name"), like(name));
+            return cb.like(root.get("name"), like(name), '\\');
         });
     }
 
@@ -57,7 +57,7 @@ public class CandidateSpecification {
                 return null;
             }
 
-            return cb.like(root.get("email"), like(mail));
+            return cb.like(root.get("email"), like(mail), '\\');
         });
     }
 
@@ -70,7 +70,7 @@ public class CandidateSpecification {
             if (exactMatch) {
                 return cb.equal(root.get("city"), city.trim().toLowerCase());
             } else {
-                return cb.like(root.get("city"), like(city));
+                return cb.like(root.get("city"), like(city), '\\');
             }
         };
     }
@@ -112,6 +112,11 @@ public class CandidateSpecification {
             }
 
             Set<String> normalized = SkillUtil.normalizeSkills(skills);
+
+            if (normalized.isEmpty()) {
+                return null;
+            }
+
             Subquery<Long> subquery = query.subquery(Long.class);
             Root<CandidateSkill> skillRoot = subquery.from(CandidateSkill.class);
 

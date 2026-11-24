@@ -13,7 +13,7 @@ public class SkillUtil {
         if (skills == null) return Set.of();
         return skills.stream()
                 .map(s -> s.trim().toLowerCase())
-                .filter(s -> !s.isEmpty())
+                .filter(s -> !s.isBlank())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

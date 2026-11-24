@@ -28,15 +28,15 @@ public class CandidateService {
 
     @Transactional
     public CandidateDto create(CreateCandidateRequest req) {
-        String normalizedEmail = req.email().trim().toLowerCase();
+        String normalizedEmail = normalize(req.email());
         if (candidateRepository.existsByEmailIgnoreCase(normalizedEmail)) {
-            throw new ResourceNotFoundException("Email already exists");
+            throw new ResourceAlreadyExistsException("Email already exists");
         }
 
         Candidate candidate = candidateRepository.save(new Candidate(
-                req.name().trim().toLowerCase(),
+                normalize(req.name()),
                 normalizedEmail,
-                req.city().trim().toLowerCase(),
+                normalize(req.city()),
                 req.experienceYears(),
                 req.noticePeriodDays()
         ));
@@ -70,27 +70,17 @@ public class CandidateService {
     public Page<CandidateDto> search(CandidateSearch search, Pageable pageable) {
         Page<Candidate> page = candidateRepository.findAll(
                 CandidateSpecification.search(search), pageable);
-
-        List<Long> ids = page.getContent().stream().map(Candidate::getId).toList();
-        if (ids.isEmpty()) {
-            return Page.empty(pageable);
-        }
-
-        Map<Long, List<String>> skillsByCandidate = skillRepository.findByCandidateIdIn(ids)
-                .stream()
-                .collect(Collectors.groupingBy(
-                        cs -> cs.getCandidate().getId(),
-                        Collectors.mapping(CandidateSkill::getSkill, Collectors.toList())
-                ));
-
-        return page.map(c -> CandidateDto.from(c, skillsByCandidate.getOrDefault(c.getId(), List.of())));
+        return getCandidateDtos(pageable, page);
     }
 
     @Transactional(readOnly = true)
     public Page<CandidateDto> filter(CandidateFilter filter, Pageable pageable) {
         Page<Candidate> page = candidateRepository.findAll(
                 CandidateSpecification.withFilter(filter), pageable);
+        return getCandidateDtos(pageable, page);
+    }
 
+    private Page<CandidateDto> getCandidateDtos(Pageable pageable, Page<Candidate> page) {
         List<Long> ids = page.getContent().stream().map(Candidate::getId).toList();
         if (ids.isEmpty()) {
             return Page.empty(pageable);
@@ -113,9 +103,9 @@ public class CandidateService {
         String normalizedEmail = validateAndGetNormalizedMail(candidateId, req.email(), candidate);
 
         candidate.updateProfile(
-                req.name(),
+                normalize(req.name()),
                 normalizedEmail,
-                req.city(),
+                normalize(req.city()),
                 req.experienceYears(),
                 req.noticePeriodDays()
         );
@@ -132,10 +122,10 @@ public class CandidateService {
             candidate.setEmail(normalizedEmail);
         }
         if (req.name() != null) {
-            candidate.setName(req.name());
+            candidate.setName(normalize(req.name()));
         }
         if (req.city() != null) {
-            candidate.setCity(req.city());
+            candidate.setCity(normalize(req.city()));
         }
         if (req.experienceYears() != null) {
             candidate.setExperienceYears(req.experienceYears());
@@ -211,12 +201,16 @@ public class CandidateService {
     }
 
     private String validateAndGetNormalizedMail(Long candidateId, String mail, Candidate candidate) {
-        String normalizedEmail = mail.trim().toLowerCase();
+        String normalizedEmail = normalize(mail);
         if (!candidate.getEmail().equals(normalizedEmail)
                 && candidateRepository.existsByEmailAndIdNot(normalizedEmail, candidateId)) {
             throw new ResourceAlreadyExistsException("Email already exists");
         }
         return normalizedEmail;
+    }
+
+    private static String normalize(String str) {
+        return str.trim().toLowerCase();
     }
 
     private Candidate getCandidate(Long candidateId) {

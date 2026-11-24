@@ -1,6 +1,7 @@
 package com.recruitapp.apiservice.controller;
 
 import com.recruitapp.apiservice.dto.*;
+import com.recruitapp.apiservice.exception.InputViolationException;
 import com.recruitapp.apiservice.service.CandidateService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,10 +15,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
-@RestController("/api/candidates")
+@RestController
+@RequestMapping("/api/candidates")
 @RequiredArgsConstructor
 public class CandidateController {
+    private static final Set<String> ALLOWED_SORTS = Set.of("experienceYears", "noticePeriodDays", "createdAt", "name");
+
     private final CandidateService candidateService;
 
     @PostMapping
@@ -35,19 +40,21 @@ public class CandidateController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    @GetMapping
+    @GetMapping("/filter")
     public Page<CandidateDto> filter(
             CandidateFilter filter,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
+        validateSort(pageable.getSort());
         return candidateService.filter(filter, pageable);
     }
 
-    @GetMapping("/search")
-    public Page<CandidateDto> search(
+    @GetMapping
+    public Page<CandidateDto> get(
             CandidateSearch search,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
+        validateSort(pageable.getSort());
         return candidateService.search(search, pageable);
     }
 
@@ -81,4 +88,11 @@ public class CandidateController {
         return ResponseEntity.noContent().build();
     }
 
+    private void validateSort(Sort sort) {
+        for (Sort.Order order : sort) {
+            if (!ALLOWED_SORTS.contains(order.getProperty())) {
+                throw new InputViolationException("Invalid sort field: " + order.getProperty());
+            }
+        }
+    }
 }
