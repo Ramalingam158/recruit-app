@@ -1,0 +1,111 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-candidates-table
+      author: Rama
+      changes:
+        - createTable:
+            tableName: candidates
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_candidates
+              - column:
+                  name: name
+                  type: VARCHAR(150)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_candidates_email
+              - column:
+                  name: city
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: experience_years
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notice_period_days
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-candidate-skills-table
+      author: Rama
+      changes:
+        - createTable:
+            tableName: candidate_skills
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_candidate_skills
+              - column:
+                  name: candidate_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: skill
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: candidate_skills
+            columnNames: candidate_id, skill
+            constraintName: uq_candidate_skills_candidate_skill
+        - addForeignKeyConstraint:
+            baseTableName: candidate_skills
+            baseColumnNames: candidate_id
+            referencedTableName: candidates
+            referencedColumnNames: id
+            constraintName: fk_candidate_skills_candidate
+            onDelete: CASCADE
+
+  - changeSet:
+      id: 001-create-candidate-indexes
+      author: Rama
+      changes:
+        - createIndex:
+            tableName: candidates
+            indexName: idx_candidates_city_exp
+            columns:
+              - column:
+                  name: city
+              - column:
+                  name: experience_years
+        - createIndex:
+            tableName: candidates
+            indexName: idx_candidates_notice
+            columns:
+              - column:
+                  name: notice_period_days
+        - createIndex:
+            tableName: candidate_skills
+            indexName: idx_candidate_skills_skill
+            columns:
+              - column:
+                  name: skill
+              - column:
+                  name: candidate_id

@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-seed-sample-candidates
+      author: backend-team
+      context: dev
+      changes:
+        - insert:
+            tableName: candidates
+            columns:
+              - column: { name: name, value: "Aarav Sharma" }
+              - column: { name: email, value: "aarav@example.com" }
+              - column: { name: city, value: "Bengaluru" }
+              - column: { name: experience_years, valueNumeric: 4 }
+              - column: { name: notice_period_days, valueNumeric: 30 }
+        - insert:
+            tableName: candidate_skills
+            columns:
+              - column: { name: candidate_id, valueNumeric: 1 }
+              - column: { name: skill, value: "java" }
+        - insert:
+            tableName: candidate_skills
+            columns:
+              - column: { name: candidate_id, valueNumeric: 1 }
+              - column: { name: skill, value: "spring" }
